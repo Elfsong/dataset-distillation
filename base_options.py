@@ -11,7 +11,6 @@ import numpy as np
 import random
 import fcntl
 import atexit
-import logging
 import torch.distributed as dist
 from contextlib import contextmanager
 from torchtext import data
@@ -333,27 +332,12 @@ class BaseOptions(object):
         parser.add_argument('--invert_dist', type=bool, default=False, help="Should distance for label init be reversed? Only used with AIDB and CNDB")
         parser.add_argument('--freeze_data', type=bool, default=False, help="Should only labels and lr be learned (freeze data samples as random)?")
 
-    def get_dummy_state(self, *cmdargs, yaml_file=None, **opt_pairs):
-        if yaml_file is None:
-            # Use default Namespace (not UniqueNamespace) because dummy state may
-            # want to overwrite things using `cmdargs`
-            opt = self.parser.parse_args(args=list(cmdargs), namespace=argparse.Namespace())
-        else:
-            with open(yaml_file, 'r') as f:
-                opt = yaml.load(f)
-        state = State(opt)
-        valid_keys = set(state.merge().keys())
-        for k in opt_pairs:
-            # TODO: check against argparse instead
-            assert k in valid_keys, "'{}' is not a valid key".format(k)
-        state.extras.update(opt_pairs)
-        return self.set_state(state, dummy=True)
+
 
     def get_state(self):
         if hasattr(self, 'state'):
             return self.state
 
-        logging.getLogger().setLevel(logging.DEBUG)
         self.opt, unknowns = self.parser.parse_known_args(namespace=State.UniqueNamespace())
         assert len(unknowns) == 0, 'Unexpected args: {}'.format(unknowns)
         self.state = State(self.opt)
@@ -371,58 +355,14 @@ class BaseOptions(object):
         # Usually only rank 0 can write to file (except logging, training many
         # nets, etc.) so let's set that flag before everything
         state.opt.distributed = state.world_size > 1
-        if state.distributed:
-            # read from os.environ
-            def set_val_from_environ(key, save_obj, ty=str, fmt="distributed_{}"):
-                if key not in os.environ:
-                    raise ValueError("expected environment variable {} to be set when using distributed".format(key))
-                setattr(save_obj, fmt.format(key.lower()), ty(os.environ[key]))
-
-            set_val_from_environ("RANK", state, int, "world_rank")
-
-            state.opt.distributed_file_init = 'INIT_FILE' in os.environ
-            if state.opt.distributed_file_init:
-                def absolute_path(val):
-                    return os.path.abspath(os.path.expanduser(str(val)))
-
-                set_val_from_environ("INIT_FILE", state.opt, ty=absolute_path)
-            else:
-                os.environ['WORLD_SIZE'] = str(state.world_size)
-                set_val_from_environ("MASTER_ADDR", state.opt)
-                set_val_from_environ("MASTER_PORT", state.opt, int)
-
-            state.set_output_flag(state.world_rank == 0)
-        else:
-            state.world_rank = 0
-            state.set_output_flag(not dummy)
+       
+        state.world_rank = 0
+        state.set_output_flag(not dummy)
 
         if not dummy:
             utils.mkdir(save_dir)
 
-            # First thing: set logging config:
-            if not state.opt.no_log:
-                log_filename = 'output'
-                if state.distributed:
-                    log_filename += '_rank{:02}'.format(state.world_rank)
-                log_filename += '.log'
-                state.opt.log_file = os.path.join(save_dir, log_filename)
-            else:
-                state.opt.log_file = None
-
-            state.opt.log_level = state.opt.log_level.upper()
-
-            if state.distributed:
-                logging_prefix = 'rank {:02d} / {:02d} - '.format(state.world_rank, state.world_size)
-            else:
-                logging_prefix = ''
-            utils.logging.configure(state.opt.log_file, getattr(logging, state.opt.log_level),
-                                    prefix=logging_prefix)
-
-            logging.info("=" * 40 + " " + state.opt.start_time + " " + "=" * 40)
-            logging.info('Base directory is {}'.format(base_dir))
-
-            if state.phase == 'test' and not os.path.isdir(base_dir):
-                logging.warning("Base directory doesn't exist")
+            
 
         _, state.opt.dataset_root, state.opt.nc, state.opt.input_size, state.opt.num_classes, \
             state.opt.dataset_normalization, state.opt.dataset_labels = datasets.get_info(state)
@@ -433,34 +373,8 @@ class BaseOptions(object):
             
         # Write yaml
         yaml_str = yaml.dump(state.merge(public_only=True), default_flow_style=False, indent=4)
-        logging.info("Options:\n\t" + yaml_str.replace("\n", "\n\t"))
 
-        if state.get_output_flag():
-            yaml_name = os.path.join(save_dir, 'opt.yaml')
-            if os.path.isfile(yaml_name):
-                old_opt_dir = os.path.join(save_dir, 'old_opts')
-                utils.mkdir(old_opt_dir)
-                with open(yaml_name, 'r') as f:
-                    # ignore unknown ctors
-                    yaml.add_multi_constructor('', lambda loader, suffix, node: None)
-                    old_yaml = yaml.load(f)  # this is a dict
-                old_yaml_time = old_yaml.get('start_time', 'unknown_time')
-                for c in ':-':
-                    old_yaml_time = old_yaml_time.replace(c, '_')
-                old_yaml_time = old_yaml_time.replace(' ', '__')
-                old_opt_new_name = os.path.join(old_opt_dir, 'opt_{}.yaml'.format(old_yaml_time))
-                try:
-                    os.rename(yaml_name, old_opt_new_name)
-                    logging.warning('{} already exists, moved to {}'.format(yaml_name, old_opt_new_name))
-                except FileNotFoundError:
-                    logging.warning((
-                        '{} already exists, tried to move to {}, but failed, '
-                        'possibly due to other process having already done it'
-                    ).format(yaml_name, old_opt_new_name))
-                    pass
-
-            with open(yaml_name, 'w') as f:
-                f.write(yaml_str)
+        
 
         # FROM HERE, we have saved options into yaml,
         #            can start assigning objects to opt, and
@@ -477,9 +391,7 @@ class BaseOptions(object):
 
         assert_divided_by_world_size('n_nets')
 
-        if state.mode != 'train':
-            assert_divided_by_world_size('test_n_nets')
-            assert_divided_by_world_size('sample_n_nets')
+
 
         if state.device_id < 0:
             state.opt.device = torch.device("cpu")
@@ -492,9 +404,7 @@ class BaseOptions(object):
                 torch.backends.cudnn.benchmark = True
 
             seed = state.base_seed
-            if state.distributed:
-                seed += state.world_rank
-                logging.info("In distributed mode, use arg.seed + rank as seed: {}".format(seed))
+
             state.opt.seed = seed
 
             # torch.manual_seed will seed ALL GPUs.
@@ -503,70 +413,17 @@ class BaseOptions(object):
             np.random.seed(seed)
             random.seed(seed)
 
-        if not dummy and state.distributed:
-            logging.info('Initializing distributed process group...')
-
-            if state.distributed_file_init:
-                dist.init_process_group("NCCL",
-                                        init_method="file://{}".format(state.distributed_init_file),
-                                        rank=state.world_rank,
-                                        world_size=state.world_size)
-            else:
-                dist.init_process_group("NCCL", init_method="env://")
-
-            utils.distributed.barrier()
-            logging.info('done!')
-
-            # Check command args consistency across ranks
-            # Use a raw parsed dict because we assigned a bunch of things already
-            # so this doesn't include things like seed (which can be rank-specific),
-            # but includes base_seed.
-            opt_dict = vars(self.parser.parse_args())
-            opt_dict.pop('device_id')  # don't compare this
-            bytes = yaml.dump(opt_dict, encoding='utf-8')
-            bytes_storage = torch.ByteStorage.from_buffer(bytes)
-            opt_tensor = torch.tensor((), dtype=torch.uint8).set_(bytes_storage).to(state.opt.device)
-            for other, ts in enumerate(utils.distributed.all_gather_coalesced([opt_tensor])):
-                other_t = ts[0]
-                if not torch.equal(other_t, opt_tensor):
-                    other_str = bytearray(other_t.cpu().storage().tolist()).decode(encoding="utf-8")
-                    this_str = bytes.decode(encoding="utf-8")
-                    raise ValueError(
-                        "Rank {} opt is different from rank {}:\n".format(state.world_rank, other) +
-                        utils.diff_str(this_str, other_str))
-
+        
         # in case of downloading, to avoid race, let rank 0 download.
-        if state.world_rank == 0:
-            train_dataset = datasets.get_dataset(state, 'train')
-            test_dataset = datasets.get_dataset(state, 'test')
+        train_dataset = datasets.get_dataset(state, 'train')
+        test_dataset = datasets.get_dataset(state, 'test')
 
-        if not dummy and state.distributed:
-            utils.distributed.barrier()
 
-        if state.world_rank != 0:
-            train_dataset = datasets.get_dataset(state, 'train')
-            test_dataset = datasets.get_dataset(state, 'test')
 
-        if state.opt.textdata:
-            state.opt.train_loader = data.Iterator(
+        state.opt.train_loader = data.Iterator(
                     train_dataset, batch_size=state.batch_size, device=state.device, repeat=False, sort_key=lambda x: len(x.train_dataset), shuffle=True)
-            state.opt.test_loader = data.Iterator(
-                    test_dataset, batch_size=state.test_batch_size, device=state.device, repeat=False, sort_key=lambda x: len(x.test_dataset), shuffle=True)
-        else:
-            state.opt.train_loader = torch.utils.data.DataLoader(
-                train_dataset, batch_size=state.batch_size,
-                num_workers=state.num_workers, pin_memory=True, shuffle=True)
-    
-            state.opt.test_loader = torch.utils.data.DataLoader(
-                test_dataset, batch_size=state.test_batch_size,
-                num_workers=state.num_workers, pin_memory=True, shuffle=True)
 
-        if not dummy:
-            logging.info('train dataset size:\t{}'.format(len(train_dataset)))
-            logging.info('test dataset size: \t{}'.format(len(test_dataset)))
-            logging.info('datasets built!')
 
-            state.vis_queue = utils.multiprocessing.FixSizeProcessQueue(2)
         return state
 
 

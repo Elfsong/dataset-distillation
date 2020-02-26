@@ -38,72 +38,44 @@ class Trainer(object):
         self.params = []
         state = self.state
         optim_lr = state.lr
-        req_lbl_grad = not state.static_labels
+        req_lbl_grad = False
         # labels
         self.labels = []
         
-        #distill_label = distill_label.t().reshape(-1)  # [0, 0, ..., 1, 1, ...]
-        #distill_label = torch.nn.Softmax(distill_label, dim=1)
-        for _ in range(self.num_data_steps):
-            if state.random_init_labels:
-                distill_label = distillation_label_initialiser(state, self.num_per_step, torch.float, req_lbl_grad)
-            else:
-                if state.num_classes==2:
+
+        if state.num_classes==2:
                     dl_array = [[i==j for i in range(1)]for j in state.init_labels]*state.distilled_images_per_class_per_step
-                else:
+        else:
                     dl_array = [[i==j for i in range(state.num_classes)]for j in state.init_labels]*state.distilled_images_per_class_per_step
-                
-                
-                distill_label=torch.tensor(dl_array,dtype=torch.float, requires_grad=req_lbl_grad, device=state.device)
-                    
-                #distill_label = self.one_hot_embedding(distill_label, state.num_classes)
-                             
-            if not state.static_labels:
-                self.labels.append(distill_label)
-                self.params.append(distill_label)
-            else:
-                self.labels.append(distill_label)
-        self.all_labels = torch.cat(self.labels)
+        distill_label=torch.tensor(dl_array,dtype=torch.float, requires_grad=req_lbl_grad, device=state.device)
+        self.labels.append(distill_label)
 
         # data
         self.data = []
-        for _ in range(self.num_data_steps):
-            if state.textdata:
-                distill_data = torch.randn(self.num_per_step, state.nc, state.input_size, state.ninp,
-                                       device=state.device, requires_grad=(not state.freeze_data))
-            else:
-                distill_data = torch.randn(self.num_per_step, state.nc, state.input_size, state.input_size,
-                                       device=state.device, requires_grad=(not state.freeze_data))
-                #distill_data = torch.randint(2,(self.num_per_step, state.nc, state.input_size, state.input_size),
-                #                       device=state.device, requires_grad=(not state.freeze_data), dtype=torch.float)
-            self.data.append(distill_data)
-            if not state.freeze_data:
-                self.params.append(distill_data)
+
+        distill_data = torch.randn(self.num_per_step, state.nc, state.input_size, state.ninp,
+                                   device=state.device, requires_grad=(not state.freeze_data))
+        self.data.append(distill_data)
+
 
         # lr
 
         # undo the softplus + threshold
         raw_init_distill_lr = torch.tensor(state.distill_lr, device=state.device)
         raw_init_distill_lr = raw_init_distill_lr.repeat(self.T, 1)
-        self.raw_distill_lrs = raw_init_distill_lr.expm1_().log_().requires_grad_()
+        self.raw_distill_lrs = raw_init_distill_lr
         self.params.append(self.raw_distill_lrs)
 
         assert len(self.params) > 0, "must have at least 1 parameter"
 
         # now all the params are in self.params, sync if using distributed
-        if state.distributed:
-            broadcast_coalesced(self.params)
-            logging.info("parameters broadcast done!")
 
-        self.optimizer = optim.Adam(self.params, lr=state.lr, betas=(0.5, 0.999))
-        self.scheduler = optim.lr_scheduler.StepLR(self.optimizer, step_size=state.decay_epochs,
-                                                   gamma=state.decay_factor)
         for p in self.params:
             p.grad = torch.zeros_like(p)
 
     def get_steps(self):
         data_label_iterable = (x for _ in range(self.state.distill_epochs) for x in zip(self.data, self.labels))
-        lrs = F.softplus(self.raw_distill_lrs).unbind()
+        lrs = self.raw_distill_lrs.unbind()
         steps = []
         for (data, label), lr in zip(data_label_iterable, lrs):
             steps.append((data,label, lr))
@@ -149,7 +121,7 @@ class Trainer(object):
         glrs = []
         labels=[]
         glabels=[]
-        dw, = torch.autograd.grad(l, (params[-1],), retain_graph=True)
+        dw, = torch.autograd.grad(l, (params[-1],), create_graph=True)
 
         # backward
         model.train()
@@ -177,57 +149,17 @@ class Trainer(object):
             #   gw, the gradient in this step, whose gradients come from:
             #     the POST-GD updated ws
             hvp_in = [w]
-            if not state.freeze_data:
-                hvp_in.append(data)
-            hvp_in.append(lr)
-            if not state.static_labels:
-                hvp_in.append(label)
+
             dgw = dw.neg()  # gw is already weighted by lr, so simple negation
             hvp_grad = torch.autograd.grad(
                 outputs=(gw,),
                 inputs=hvp_in,
                 grad_outputs=(dgw,),
-                retain_graph=True
+                retain_graph=False
             )
-            # Update for next iteration, i.e., previous step
-            with torch.no_grad():
-                # Save the computed gdata and glrs
-                if not state.freeze_data:
-                    datas.append(data)
-                    gdatas.append(hvp_grad[1])
-                    lrs.append(lr)
-                    glrs.append(hvp_grad[2])
-                    if not state.static_labels:
-                        labels.append(label)
-                        glabels.append(hvp_grad[3])
-                else:
-                    lrs.append(lr)
-                    glrs.append(hvp_grad[1])
-                    if not state.static_labels:
-                        labels.append(label)
-                        glabels.append(hvp_grad[2])
-
-                # Update for next iteration, i.e., previous step
-                # Update dw
-                # dw becomes the gradients w.r.t. the updated w for previous step
-                dw.add_(hvp_grad[0])
+            
 
         return datas, gdatas, lrs, glrs, labels, glabels
-
-    def accumulate_grad(self, grad_infos):
-        bwd_out = []
-        bwd_grad = []
-        for datas, gdatas, lrs, glrs, labels, glabels in grad_infos:
-            bwd_out += list(lrs)
-            bwd_grad += list(glrs)
-            if not self.state.freeze_data:
-                for d, g in zip(datas, gdatas):
-                    d.grad.add_(g)
-            if not self.state.static_labels:
-                for l, g in zip(labels, glabels):
-                    l.grad.add_(g)
-        if len(bwd_out) > 0:
-            torch.autograd.backward(bwd_out, bwd_grad)#MULTISTEP PROBLEM?
 
     def save_results(self, steps=None, visualize=True, subfolder=''):
         with torch.no_grad():
@@ -240,118 +172,56 @@ class Trainer(object):
     def prefetch_train_loader_iter(self):
         state = self.state
         device = state.device
-        train_iter = iter(state.train_loader)
-        if state.textdata:
-                niter = len(tuple(train_iter))
-        else:
-                niter = len(train_iter)
+        niter = 10
         for epoch in range(state.epochs):
-            if state.textdata:
-                train_iter = iter(state.train_loader)
             print("Training Epoch: {}".format(epoch))
             prefetch_it = max(0, niter - 2)
-            for it, example in enumerate(train_iter):
-                if state.textdata:
-                    #print(example.fields)
-                    data = example.text[0]
-                    target = example.label
+            for it in range(niter):
+                    data = torch.randint(5000, (1,state.maxlen))
+                    target = torch.randint(2, (1,1))
                     val=(data,target)
-                else:
-                    val=example
-                
-                # Prefetch (start workers) at the end of epoch BEFORE yielding
-                if it == prefetch_it and epoch < state.epochs - 1:
-                    train_iter = iter(state.train_loader)
-                yield epoch, it, val
+                    yield epoch, it, val
 
     def train(self):
         state = self.state
         device = state.device
-        train_loader = state.train_loader
-        sample_n_nets = state.local_sample_n_nets
-        grad_divisor = state.sample_n_nets  # i.e., global sample_n_nets
-        ckpt_int = state.checkpoint_interval
 
-        data_t0 = time.time()
-
+        
         for epoch, it, (rdata, rlabel) in self.prefetch_train_loader_iter():
-            data_t = time.time() - data_t0
             
+            #if it == 0 or epoch == 0:
+            #    with torch.no_grad():
+            #        steps = self.get_steps()
+                #evaluate_steps(state, steps, 'Begin of epoch {}'.format(epoch))
+                    #If this block is commented out then need to set line 174 retain_graph=False
             
-            if it == 0:
-                self.scheduler.step()
 
-            if it == 0 and ((ckpt_int >= 0 and epoch % ckpt_int == 0) or epoch == 0):
-                with torch.no_grad():
-                    steps = self.get_steps()
-                self.save_results(steps=steps, visualize=state.visualize, subfolder='checkpoints/epoch{:04d}'.format(epoch))
-                evaluate_steps(state, steps, 'Begin of epoch {}'.format(epoch))
+            tmodels = self.models
             
-            do_log_this_iter = it == 0 or (state.log_interval >= 0 and it % state.log_interval == 0)
-            
-            self.optimizer.zero_grad()
-            rdata, rlabel = rdata.to(device, non_blocking=True), rlabel.to(device, non_blocking=True)
 
-            if sample_n_nets == state.local_n_nets:
-                tmodels = self.models
-            else:
-                idxs = np.random.choice(state.local_n_nets, sample_n_nets, replace=False)
-                tmodels = [self.models[i] for i in idxs]
-
-            t0 = time.time()
             losses = []
             steps = self.get_steps()
 
             # activate everything needed to run on this process
             grad_infos = []
             for model in tmodels:
-                if state.train_nets_type == 'unknown_init':
-                    model.reset(state)
 
                 l, saved = self.forward(model, rdata, rlabel, steps)
-                losses.append(l)
-
+                #losses.append(l)
+                
                 next_ones = self.backward(model, rdata, rlabel, steps, saved)
-                grad_infos.append(next_ones)
-
-            self.accumulate_grad(grad_infos)
+                #grad_infos.append(next_ones)
+            
+            #self.accumulate_grad(grad_infos)
 
             # all reduce if needed
             # average grad
-            all_reduce_tensors = [p.grad for p in self.params]
-            if do_log_this_iter:
-                losses = torch.stack(losses, 0).sum()
-                all_reduce_tensors.append(losses)
+            
+            
 
-            if state.distributed:
-                all_reduce_coalesced(all_reduce_tensors, grad_divisor)
-            else:
-                for t in all_reduce_tensors:
-                    t.div_(grad_divisor)
-
-            # opt step
-            self.optimizer.step()
-            t = time.time() - t0
-
-            if do_log_this_iter:
-                loss = losses.item()
-                logging.info((
-                    'Epoch: {:4d} [{:7d}/{:7d} ({:2.0f}%)]\tLoss: {:.4f}\t'
-                    'Data Time: {:.2f}s\tTrain Time: {:.2f}s'
-                ).format(
-                    epoch, it * train_loader.batch_size, len(train_loader.dataset),
-                    100. * it / len(train_loader), loss, data_t, t,
-                ))
-                if loss != loss:  # nan
-                    raise RuntimeError('loss became NaN')
-                    
-            del steps, saved, grad_infos, losses, all_reduce_tensors
-
-            data_t0 = time.time()
 
         with torch.no_grad():
             steps = self.get_steps()
-        self.save_results(steps, visualize=state.visualize)
         return steps
 
 
