@@ -234,7 +234,7 @@ class BaseOptions(object):
                             help='how many batches to wait before logging training status')
         parser.add_argument('--checkpoint_interval', type=int, default=10, metavar='N',
                             help='checkpoint interval (epoch)')
-        parser.add_argument('--dataset', type=str, default='MNIST',
+        parser.add_argument('--dataset', type=str, default='imdb',
                             help='dataset: MNIST | Cifar10 | PASCAL_VOC | CUB200')
         parser.add_argument('--source_dataset', type=str, default=None,
                             help='dataset: MNIST | Cifar10 | PASCAL_VOC | CUB200')
