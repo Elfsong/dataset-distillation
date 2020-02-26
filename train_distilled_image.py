@@ -4,21 +4,11 @@ import logging
 import random
 import math
 import torch
-import torch.optim as optim
-import torch.distributed as dist
 import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
-import utils
-import networks
 from itertools import repeat, chain
-from networks.utils import clone_tuple
-from utils.distributed import broadcast_coalesced, all_reduce_coalesced
-from utils.io import save_results
-from utils.label_inits import distillation_label_initialiser
-from basics import task_loss, final_objective_loss, evaluate_steps
-from contextlib import contextmanager
-import psutil
+from basics import task_loss, final_objective_loss
 
 import faulthandler
 faulthandler.enable()
@@ -161,10 +151,7 @@ class Trainer(object):
 
         return datas, gdatas, lrs, glrs, labels, glabels
 
-    def save_results(self, steps=None, visualize=True, subfolder=''):
-        with torch.no_grad():
-            steps = steps or self.get_steps()
-            save_results(self.state, steps, visualize=visualize, subfolder=subfolder)
+
 
     def __call__(self):
         return self.train()

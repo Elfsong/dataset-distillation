@@ -252,19 +252,19 @@ class BaseOptions(object):
                             help='directory storing trained models')
         parser.add_argument('--model_subdir_format', type=str, default=None,
                             help='directory storing trained models')
-        parser.add_argument('--train_nets_type', type=str, default='unknown_init',
+        parser.add_argument('--train_nets_type', type=str, default='known_init',
                             help='[ unknown_init | known_init | loaded ]')  # add things like P(reset) = 0.7?
-        parser.add_argument('--test_nets_type', type=str, default='unknown_init',
+        parser.add_argument('--test_nets_type', type=str, default='same_as_train',
                             help='[ unknown_init | same_as_train | loaded ]')
         parser.add_argument('--dropout', action='store_true',
                             help='if set, use dropout')
         parser.add_argument('--distilled_images_per_class_per_step', type=pos_int, default=1,
                             help='use #batch_size distilled images for each class in each step')
-        parser.add_argument('--distill_steps', type=pos_int, default=10,
+        parser.add_argument('--distill_steps', type=pos_int, default=1,
                             help='Iterative distillation, use #num_steps * #batch_size * #classes distilled images. '
                                  'See also --distill_epochs. The total number '
                                  'of steps is distill_steps * distill_epochs.')
-        parser.add_argument('--distill_epochs', type=pos_int, default=3,
+        parser.add_argument('--distill_epochs', type=pos_int, default=1,
                             help='how many times to repeat all steps 1, 2, 3, 1, 2, 3, ...')
         parser.add_argument('--n_nets', type=int, default=1,
                             help='# random nets')
@@ -313,14 +313,14 @@ class BaseOptions(object):
                                  'be either MASTER_PORT & MASTER_ADDR, or INIT_FILE. '
                                  'Then it stores the values in state as "distributed_master_addr", '
                                  '"distributed_master_port", etc. Only rank 0 process writes checkpoints. ')
-        parser.add_argument('--static_labels', type=int, default=0, help='0 for fixed labels during training, 1 for them to be learned as well.')
+        parser.add_argument('--static_labels', type=int, default=1, help='0 for fixed labels during training, 1 for them to be learned as well.')
         parser.add_argument('--random_init_labels', type=str, default='', help=' "" for user-set labels init, other strings for special inits.')
         parser.add_argument('--num_distill_classes', type=int, default=None, help='Number of distill samples per step (can be less than number of classes.')
         parser.add_argument('--init_labels', type=int, nargs="*", default=None, help='If not random_init_labels, use this to set initial values of distill labels.')
-        parser.add_argument('--textdata', type=bool, default=False, help='Is the dataset text-based?')
-        parser.add_argument('--ntoken', type=int, default=251639, help='Number of possible unique words for text data')
+        parser.add_argument('--textdata', type=bool, default=True, help='Is the dataset text-based?')
+        parser.add_argument('--ntoken', type=int, default=5000, help='Number of possible unique words for text data')
         parser.add_argument('--ninp', type=int, default=50, help='Embedding size for text data')
-        parser.add_argument('--maxlen', type=int, default=400, help='maxlen for text data')
+        parser.add_argument('--maxlen', type=int, default=10, help='maxlen for text data')
         parser.add_argument('--learnable_embedding', type=bool, default=False, help='Should text embedding be learnable?')
         parser.add_argument('--reproduction_test', type=bool, default=False, help='Use original loss function instead of custom one?')
         parser.add_argument('--label_softmax', type=bool, default=False, help='Should softmax be applied to distillation labels in loss function?')

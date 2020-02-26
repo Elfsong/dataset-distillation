@@ -19,11 +19,9 @@ class Transformer1(utils.ReparamModule):
         nhead=1
         hidden_dim = embedding_dim
         n_layers = 1
-        dropout=0.1
         self.embed = nn.Embedding(ntoken, embedding_dim)
         self.embed.weight.data.copy_(state.pretrained_vec) # load pretrained vectors
-        self.embed.weight.requires_grad = state.learnable_embedding
-        self.decoder_layer = nn.TransformerDecoderLayer(embedding_dim, nhead, dim_feedforward=hidden_dim, dropout=dropout, activation='relu')
+        self.decoder_layer = nn.TransformerDecoderLayer(embedding_dim, nhead, dim_feedforward=hidden_dim, activation='relu')
         self.decoder = nn.TransformerDecoder(self.decoder_layer, n_layers)
         self.classifier_head = nn.Linear(hidden_dim, self.output_dim)
         #self.sigm=nn.Sigmoid()
@@ -32,13 +30,11 @@ class Transformer1(utils.ReparamModule):
 
     def forward(self, x):
 
-        if self.state.textdata:
-            if not self.distilling_flag:
-                out = self.embed(x) #* math.sqrt(ninp)
-            else:
-                out=torch.squeeze(x)
+
+        if not self.distilling_flag:
+            out = self.embed(x) #* math.sqrt(ninp)
         else:
-            out = x
+            out=torch.squeeze(x)
         #print(out.size())
         tgt_size=[i for i in out.size()]
         tgt_size[-2]=1

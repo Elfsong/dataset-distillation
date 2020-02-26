@@ -14,7 +14,6 @@ import numpy as np
 from networks.utils import print_network
 from utils.baselines import encode
 from utils.io import vis_results, load_results, save_test_results
-from basics import evaluate_models, evaluate_steps
 from collections import defaultdict
 from contextlib import contextmanager
 import train_distilled_image
