@@ -9,11 +9,7 @@ import time
 import math
 import numpy as np
 import random
-import fcntl
-import atexit
-import torch.distributed as dist
 from contextlib import contextmanager
-from torchtext import data
 
 
 class State(object):
