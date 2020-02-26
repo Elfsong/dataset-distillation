@@ -105,8 +105,7 @@ class State(object):
         else:
             if opt.train_nets_type != 'loaded':
                 train_nets_str = '{},{}'.format(opt.init, opt.init_param)
-            else:
-                train_nets_str = 'loaded,{}'.format(opt.n_nets)
+
 
             name = 'arch({},{})_distillLR{}_E({},{},{})_lr{}_B{}x{}x{}'.format(
                 opt.arch, train_nets_str, str(opt.distill_lr),
@@ -125,11 +124,7 @@ class State(object):
 
     def get_save_directory(self):
         base_dir = self.get_base_directory()
-        if self.phase != 'train':
-            base_dir = os.path.join(base_dir, 'test')
-            subdir = self.get_test_subdirectory()
-            if subdir is not None and subdir != '':
-                base_dir = os.path.join(base_dir, subdir)
+        
         return base_dir
 
     def get_test_subdirectory(self):
@@ -149,10 +144,7 @@ class State(object):
         opt = argparse.Namespace(**vs)
         model_dir = opt.model_dir
         arch = opt.arch
-        if opt.mode == 'distill_adapt':
-            dataset = opt.source_dataset
-        else:
-            dataset = opt.dataset
+        dataset = opt.dataset
         if self.model_subdir_format is not None and self.model_subdir_format != '':
             subdir = self.model_subdir_format.format(**vs)
         else:
@@ -419,9 +411,6 @@ class BaseOptions(object):
         test_dataset = datasets.get_dataset(state, 'test')
 
 
-
-        state.opt.train_loader = data.Iterator(
-                    train_dataset, batch_size=state.batch_size, device=state.device, repeat=False, sort_key=lambda x: len(x.train_dataset), shuffle=True)
 
 
         return state

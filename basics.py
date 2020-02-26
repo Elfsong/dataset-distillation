@@ -9,7 +9,6 @@ import networks
 from itertools import chain
 from collections import OrderedDict, namedtuple
 from utils import pm, nan
-from utils.distributed import all_gather_coalesced
 from typing import Optional
 
 
