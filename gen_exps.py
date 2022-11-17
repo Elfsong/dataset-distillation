@@ -11,7 +11,7 @@ import numpy as np
 
 epochs=350
 exps={}
-exps["dataset"]={"MNIST", "Cifar10"}
+exps["dataset"]={"MNIST", "Cifar10", "Cifar100"}
 exps["softmax"]={1,0}
 exps["network_init"]={"Fixed"}#,"Random"}
 exps["label_init"]={"zeros", "uniform", "stdnormal", "bin", "hard", "smoothed", "orthogonal", "CNDB", "CNIDB", "AIDB-MSE","AIDB-SSIM", "AIIDB-MSE", "AIIDB-SSIM"}

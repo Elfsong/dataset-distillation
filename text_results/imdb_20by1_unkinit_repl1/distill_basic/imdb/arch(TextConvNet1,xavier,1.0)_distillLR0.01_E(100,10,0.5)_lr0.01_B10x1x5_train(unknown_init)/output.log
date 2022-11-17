@@ -1,0 +1,128 @@
+2022-11-17 17:27:55 [INFO ]  ======================================== 2022-11-17 17:27:55 ========================================
+2022-11-17 17:27:55 [INFO ]  Base directory is text_results/imdb_20by1_unkinit_repl1/distill_basic/imdb/arch(TextConvNet1,xavier,1.0)_distillLR0.01_E(100,10,0.5)_lr0.01_B10x1x5_train(unknown_init)
+2022-11-17 17:27:55 [INFO ]  Options: 
+2022-11-17 17:27:55 [INFO ]  	add_first: true
+2022-11-17 17:27:55 [INFO ]  	add_label_scaling: 0
+2022-11-17 17:27:55 [INFO ]  	arch: TextConvNet1
+2022-11-17 17:27:55 [INFO ]  	attack_class: 0
+2022-11-17 17:27:55 [INFO ]  	base_seed: 1
+2022-11-17 17:27:55 [INFO ]  	batch_size: 1024
+2022-11-17 17:27:55 [INFO ]  	checkpoint_interval: 10
+2022-11-17 17:27:55 [INFO ]  	dataset: imdb
+2022-11-17 17:27:55 [INFO ]  	dataset_labels: !!set
+2022-11-17 17:27:55 [INFO ]  	    0: null
+2022-11-17 17:27:55 [INFO ]  	    1: null
+2022-11-17 17:27:55 [INFO ]  	dataset_normalization: !!python/tuple
+2022-11-17 17:27:55 [INFO ]  	- !!python/tuple
+2022-11-17 17:27:55 [INFO ]  	    - 0
+2022-11-17 17:27:55 [INFO ]  	- !!python/tuple
+2022-11-17 17:27:55 [INFO ]  	    - 0
+2022-11-17 17:27:55 [INFO ]  	dataset_root: ./data/text/imdb
+2022-11-17 17:27:55 [INFO ]  	decay_epochs: 10
+2022-11-17 17:27:55 [INFO ]  	decay_factor: 0.5
+2022-11-17 17:27:55 [INFO ]  	device_id: -1
+2022-11-17 17:27:55 [INFO ]  	dist_metric: MSE
+2022-11-17 17:27:55 [INFO ]  	distill_epochs: 5
+2022-11-17 17:27:55 [INFO ]  	distill_lr: 0.01
+2022-11-17 17:27:55 [INFO ]  	distill_steps: 1
+2022-11-17 17:27:55 [INFO ]  	distilled_images_per_class_per_step: 10
+2022-11-17 17:27:55 [INFO ]  	distributed: false
+2022-11-17 17:27:55 [INFO ]  	dropout: false
+2022-11-17 17:27:55 [INFO ]  	epochs: 100
+2022-11-17 17:27:55 [INFO ]  	expr_name_format: null
+2022-11-17 17:27:55 [INFO ]  	freeze_data: false
+2022-11-17 17:27:55 [INFO ]  	image_dpi: 80
+2022-11-17 17:27:55 [INFO ]  	init: xavier
+2022-11-17 17:27:55 [INFO ]  	init_labels:
+2022-11-17 17:27:55 [INFO ]  	- 0
+2022-11-17 17:27:55 [INFO ]  	- 1
+2022-11-17 17:27:55 [INFO ]  	init_param: 1.0
+2022-11-17 17:27:55 [INFO ]  	input_size: 400
+2022-11-17 17:27:55 [INFO ]  	invert_dist: false
+2022-11-17 17:27:55 [INFO ]  	label_softmax: false
+2022-11-17 17:27:55 [INFO ]  	learnable_embedding: false
+2022-11-17 17:27:55 [INFO ]  	log_file: text_results/imdb_20by1_unkinit_repl1/distill_basic/imdb/arch(TextConvNet1,xavier,1.0)_distillLR0.01_E(100,10,0.5)_lr0.01_B10x1x5_train(unknown_init)/output.log
+2022-11-17 17:27:55 [INFO ]  	log_interval: 100
+2022-11-17 17:27:55 [INFO ]  	log_level: INFO
+2022-11-17 17:27:55 [INFO ]  	lr: 0.01
+2022-11-17 17:27:55 [INFO ]  	maxlen: 400
+2022-11-17 17:27:55 [INFO ]  	mode: distill_basic
+2022-11-17 17:27:55 [INFO ]  	model_dir: ./models/
+2022-11-17 17:27:55 [INFO ]  	model_subdir_format: null
+2022-11-17 17:27:55 [INFO ]  	mult_label_scaling: 1
+2022-11-17 17:27:55 [INFO ]  	n_nets: 1
+2022-11-17 17:27:55 [INFO ]  	nc: 1
+2022-11-17 17:27:55 [INFO ]  	ninp: 100
+2022-11-17 17:27:55 [INFO ]  	no_log: false
+2022-11-17 17:27:55 [INFO ]  	ntoken: 5000
+2022-11-17 17:27:55 [INFO ]  	num_classes: 2
+2022-11-17 17:27:55 [INFO ]  	num_distill_classes: 2
+2022-11-17 17:27:55 [INFO ]  	num_workers: 8
+2022-11-17 17:27:55 [INFO ]  	phase: train
+2022-11-17 17:27:55 [INFO ]  	random_init_labels: hard
+2022-11-17 17:27:55 [INFO ]  	reproduction_test: false
+2022-11-17 17:27:55 [INFO ]  	results_dir: text_results/imdb_20by1_unkinit_repl1
+2022-11-17 17:27:55 [INFO ]  	sample_n_nets: 1
+2022-11-17 17:27:55 [INFO ]  	source_dataset: null
+2022-11-17 17:27:55 [INFO ]  	start_time: '2022-11-17 17:27:55'
+2022-11-17 17:27:55 [INFO ]  	static_labels: 0
+2022-11-17 17:27:55 [INFO ]  	target_class: 1
+2022-11-17 17:27:55 [INFO ]  	test_batch_size: 1024
+2022-11-17 17:27:55 [INFO ]  	test_distill_epochs: null
+2022-11-17 17:27:55 [INFO ]  	test_distilled_images: loaded
+2022-11-17 17:27:55 [INFO ]  	test_distilled_lrs:
+2022-11-17 17:27:55 [INFO ]  	- loaded
+2022-11-17 17:27:55 [INFO ]  	test_n_nets: 1
+2022-11-17 17:27:55 [INFO ]  	test_n_runs: 1
+2022-11-17 17:27:55 [INFO ]  	test_name_format: null
+2022-11-17 17:27:55 [INFO ]  	test_nets_type: unknown_init
+2022-11-17 17:27:55 [INFO ]  	test_niter: 1
+2022-11-17 17:27:55 [INFO ]  	test_optimize_n_nets: 20
+2022-11-17 17:27:55 [INFO ]  	test_optimize_n_runs: null
+2022-11-17 17:27:55 [INFO ]  	textdata: true
+2022-11-17 17:27:55 [INFO ]  	train_nets_type: unknown_init
+2022-11-17 17:27:55 [INFO ]  	visualize: false
+2022-11-17 17:27:55 [INFO ]  	world_rank: 0
+2022-11-17 17:27:55 [INFO ]  	world_size: 1
+2022-11-17 17:27:55 [INFO ]  	
+2022-11-17 17:28:00 [INFO ]  Loading vectors from .vector_cache/glove.6B.100d.txt_5000.pt
+2022-11-17 17:28:08 [INFO ]  Loading vectors from .vector_cache/glove.6B.100d.txt_5000.pt
+2022-11-17 17:28:09 [INFO ]  train dataset size:	25000
+2022-11-17 17:28:09 [INFO ]  test dataset size: 	25000
+2022-11-17 17:28:09 [INFO ]  datasets built!
+2022-11-17 17:28:09 [INFO ]  mode: distill_basic, phase: train
+2022-11-17 17:28:09 [INFO ]  Build 1 TextConvNet1 network(s) with [xavier(1.0)] init
+2022-11-17 17:28:09 [INFO ]  Build 1 TextConvNet1 network(s) with [xavier(1.0)] init
+2022-11-17 17:28:09 [INFO ]  Train 1 steps iterated for 5 epochs
+2022-11-17 17:28:12 [INFO ]  Results saved to text_results/imdb_20by1_unkinit_repl1/distill_basic/imdb/arch(TextConvNet1,xavier,1.0)_distillLR0.01_E(100,10,0.5)_lr0.01_B10x1x5_train(unknown_init)/checkpoints/epoch0000/results.pth
+2022-11-17 17:28:12 [INFO ]  
+2022-11-17 17:28:12 [INFO ]  Begin of epoch 0 :
+2022-11-17 17:28:13 [INFO ]  Begin of epoch 0  (1 unknown_init nets) test results: 
+2022-11-17 17:28:13 [INFO ]  	          STEP                   ACCURACY                   LOSS          
+2022-11-17 17:28:13 [INFO ]  	            before steps          50.3906 ±  nan%            0.6964 ±  nan
+2022-11-17 17:28:13 [INFO ]  	     step  5 (lr=0.0100)          51.7578 ±  nan%            0.6925 ±  nan
+2022-11-17 17:28:13 [INFO ]  
+2022-11-17 17:28:17 [INFO ]  Epoch:    0 [      0/  25000 ( 0%)]	Loss: 0.7031	Data Time: 2.43s	Train Time: 3.14s
+2022-11-17 17:29:36 [INFO ]  Epoch:    1 [      0/  25000 ( 0%)]	Loss: 0.6933	Data Time: 0.11s	Train Time: 3.09s
+2022-11-17 17:30:55 [INFO ]  Epoch:    2 [      0/  25000 ( 0%)]	Loss: 0.6912	Data Time: 0.12s	Train Time: 2.99s
+2022-11-17 17:32:15 [INFO ]  Epoch:    3 [      0/  25000 ( 0%)]	Loss: 0.6868	Data Time: 0.13s	Train Time: 2.86s
+2022-11-17 17:33:36 [INFO ]  Epoch:    4 [      0/  25000 ( 0%)]	Loss: 0.6801	Data Time: 0.11s	Train Time: 2.95s
+2022-11-17 17:34:56 [INFO ]  Epoch:    5 [      0/  25000 ( 0%)]	Loss: 0.6737	Data Time: 0.12s	Train Time: 2.77s
+2022-11-17 17:36:15 [INFO ]  Epoch:    6 [      0/  25000 ( 0%)]	Loss: 0.6692	Data Time: 0.11s	Train Time: 2.88s
+2022-11-17 17:37:37 [INFO ]  Epoch:    7 [      0/  25000 ( 0%)]	Loss: 0.6773	Data Time: 0.13s	Train Time: 2.90s
+2022-11-17 17:38:56 [INFO ]  Epoch:    8 [      0/  25000 ( 0%)]	Loss: 0.6578	Data Time: 0.11s	Train Time: 2.96s
+2022-11-17 17:40:15 [INFO ]  Epoch:    9 [      0/  25000 ( 0%)]	Loss: 0.6332	Data Time: 0.11s	Train Time: 2.93s
+2022-11-17 17:41:31 [INFO ]  Results saved to text_results/imdb_20by1_unkinit_repl1/distill_basic/imdb/arch(TextConvNet1,xavier,1.0)_distillLR0.01_E(100,10,0.5)_lr0.01_B10x1x5_train(unknown_init)/checkpoints/epoch0010/results.pth
+2022-11-17 17:41:31 [INFO ]  
+2022-11-17 17:41:31 [INFO ]  Begin of epoch 10 :
+2022-11-17 17:41:32 [INFO ]  Begin of epoch 10  (1 unknown_init nets) test results: 
+2022-11-17 17:41:32 [INFO ]  	          STEP                   ACCURACY                   LOSS          
+2022-11-17 17:41:32 [INFO ]  	            before steps          50.2930 ±  nan%            0.6935 ±  nan
+2022-11-17 17:41:32 [INFO ]  	     step  5 (lr=0.0625)          58.6914 ±  nan%            0.6043 ±  nan
+2022-11-17 17:41:32 [INFO ]  
+2022-11-17 17:41:35 [INFO ]  Epoch:   10 [      0/  25000 ( 0%)]	Loss: 0.6187	Data Time: 0.11s	Train Time: 3.03s
+2022-11-17 17:42:54 [INFO ]  Epoch:   11 [      0/  25000 ( 0%)]	Loss: 0.6115	Data Time: 0.11s	Train Time: 2.96s
+2022-11-17 17:44:14 [INFO ]  Epoch:   12 [      0/  25000 ( 0%)]	Loss: 0.6168	Data Time: 0.12s	Train Time: 2.85s
+2022-11-17 17:45:34 [INFO ]  Epoch:   13 [      0/  25000 ( 0%)]	Loss: 0.5958	Data Time: 0.11s	Train Time: 2.93s
+2022-11-17 17:46:55 [INFO ]  Epoch:   14 [      0/  25000 ( 0%)]	Loss: 0.6455	Data Time: 0.12s	Train Time: 3.08s
+2022-11-17 17:48:16 [INFO ]  Epoch:   15 [      0/  25000 ( 0%)]	Loss: 0.5830	Data Time: 0.11s	Train Time: 2.92s

@@ -346,6 +346,7 @@ class Trainer(object):
                     100. * it / len(train_loader), loss, data_t, t,
                 ))
                 if loss != loss:  # nan
+                    print(loss)
                     raise RuntimeError('loss became NaN')
                     
             del steps, saved, grad_infos, losses, all_reduce_tensors

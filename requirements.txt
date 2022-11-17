@@ -7,4 +7,3 @@ torchvision >= 0.2.1
 pyyaml
 pillow
 scikit-image == 0.16.1
-torchtext

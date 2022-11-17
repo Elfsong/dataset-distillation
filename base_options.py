@@ -14,7 +14,7 @@ import atexit
 import logging
 import torch.distributed as dist
 from contextlib import contextmanager
-from torchtext import data
+from torchtext.legacy import data
 
 
 class State(object):
@@ -236,7 +236,7 @@ class BaseOptions(object):
         parser.add_argument('--checkpoint_interval', type=int, default=10, metavar='N',
                             help='checkpoint interval (epoch)')
         parser.add_argument('--dataset', type=str, default='MNIST',
-                            help='dataset: MNIST | Cifar10 | PASCAL_VOC | CUB200')
+                            help='dataset: MNIST | Cifar10 | Cifar100 | PASCAL_VOC | CUB200')
         parser.add_argument('--source_dataset', type=str, default=None,
                             help='dataset: MNIST | Cifar10 | PASCAL_VOC | CUB200')
         parser.add_argument('--dataset_root', type=str, default=None,
@@ -271,7 +271,7 @@ class BaseOptions(object):
                             help='# random nets')
         parser.add_argument('--sample_n_nets', type=pos_int, default=None,
                             help='sample # nets for each iteration. Default: equal to n_nets')
-        parser.add_argument('--device_id', type=comp(int, 'ge', -1), default=0, help='device id, -1 is cpu')
+        parser.add_argument('--device_id', type=comp(int, 'ge', -1), default=-1, help='device id, -1 is cpu')
         parser.add_argument('--image_dpi', type=pos_int, default=80,
                             help='dpi for visual image generation')
         parser.add_argument('--attack_class', type=nonneg_int, default=0,
